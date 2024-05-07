@@ -48,20 +48,17 @@ pub fn spawn_flowers(
     seed_radius: f32,
     seed_distance: f32,
     seed_rotation: f32
-) {
-    // Golden ratio
-    
-    // Starting angle
+) {    
     let start_angle = 0.0;
 
     for i in 1..num_seeds {
         let angle = start_angle + ((2.0 * PI)/ (1. / seed_rotation)) * (i as f32);
-        let radius = 5.0 * (i as f32).sqrt(); // Adjust radius based on index
-        let x = angle.cos() * radius * seed_distance; // Multiply by 2.0 to space them out more
+        let radius = 5.0 * (i as f32).sqrt(); 
+        let x = angle.cos() * radius * seed_distance; 
         let y = angle.sin() * radius * seed_distance;
     
         commands.spawn(MaterialMesh2dBundle {
-            mesh: Mesh2dHandle(meshes.add(Circle { radius: seed_radius })), // Use smaller radius for points
+            mesh: Mesh2dHandle(meshes.add(Circle { radius: seed_radius })), 
             material: materials.add(Color::ORANGE),
             transform: Transform::from_xyz(x, y, 0.0),
             ..Default::default()
