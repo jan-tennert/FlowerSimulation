@@ -41,7 +41,6 @@ jobs:
       - name: Prepare package
         run: |
           wasm-bindgen --no-typescript --out-name Flower --out-dir wasm --target web target/wasm32-unknown-unknown/release/${{ env.binary }}.wasm
-          cp -r assets wasm/
       - name: Setup Pages
         uses: actions/configure-pages@v3
       - name: Upload artifact
