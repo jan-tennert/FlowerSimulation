@@ -23,3 +23,6 @@ meval = "0.2"
 
 [features]
 block_input = ["bevy_pancam/bevy_egui"]
+
+[build]
+rustflags = ["--cfg=web_sys_unstable_apis"]
