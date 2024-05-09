@@ -8,8 +8,28 @@ pub struct UiPlugin;
 impl Plugin for UiPlugin {
     fn build(&self, app: &mut App) {
         app
+            .init_resource::<UiState>()
             .add_systems(Update, settings_ui);
     }
+}
+
+#[derive(Resource)]
+pub struct UiState {
+    pub fraction_content: String,
+    pub step_size: f32,
+    pub animate: bool
+}
+
+impl Default for UiState {
+    
+    fn default() -> Self {
+        Self {
+            fraction_content: String::from(""),
+            step_size: 0.0001,
+            animate: false
+        }
+    }
+    
 }
 
 pub fn settings_ui(
@@ -24,6 +44,7 @@ pub fn settings_ui(
     flowers: Query<Entity, With<FlowerSeed>>,
     mut egui_settings: ResMut<EguiSettings>,
     keys: Res<ButtonInput<KeyCode>>,
+    mut ui_state: ResMut<UiState>
 ) {
     let mut changed = false;
     egui::SidePanel::left("settings_ui")
@@ -34,17 +55,38 @@ pub fn settings_ui(
                 .auto_shrink(true)
                 .show(ui, |ui| {
                     ui.heading("Settings");
-                    let mut r_changed = ui.add(egui::Slider::new(&mut seed_rotation.0, 0.0..=1.0).step_by(0.00001).drag_value_speed(0.0001).text("Rotation per seed")).changed();
-                    ui.horizontal(|ui| {
-                        if ui.button("1/PI").clicked() {
+                    ui.label("Rotation per seed");
+                    let rotation_slider = ui.add(
+                egui::DragValue::new(&mut seed_rotation.0)
+                        .speed(ui_state.step_size)         
+                        .fixed_decimals(14)
+                    );
+                    let mut r_changed = rotation_slider.changed();        
+                    ui.label("Math input");
+                    let fr = ui.text_edit_singleline(&mut ui_state.fraction_content);
+                    if fr.lost_focus()  && fr.ctx.input(|i| i.key_pressed(egui::Key::Enter)) {
+                        if let Ok(value) = meval::eval_str(&ui_state.fraction_content) {
                             r_changed = true;
-                            seed_rotation.0 = 1.0 / PI;
+                            seed_rotation.0 = value as f32;
                         }
-                        if ui.button("1/PHI").clicked() {
+                    }
+                    ui.horizontal(|ui| {
+                        if ui.button("1/φ").clicked() {
                             r_changed = true;
                             seed_rotation.0 = 1.0 / PHI;
                         }
                     });
+                    ui.label("Animation");
+                    ui.add(egui::Slider::new(&mut ui_state.step_size, 0.0..=0.1).drag_value_speed(0.001).logarithmic(true).text("Step size")).changed();
+                    let button_text = if ui_state.animate {
+                        "Stop animation"
+                    } else {
+                        "Start animation"
+                    };
+                    if ui.button(button_text).clicked() {
+                        ui_state.animate = !ui_state.animate;  
+                    }
+                    ui.label("Misc Settings");
                     let d_changed = ui.add(egui::Slider::new(&mut seed_distance.0, 0.0..=30.0).text("Seed density")).changed();
                     let ra_changed = ui.add(egui::Slider::new(&mut seed_radius.0, 0.0..=20.0).text("Seed radius")).changed();
                     let n_changed = ui.add(egui::Slider::new(&mut num_seeds.0, 0..=1000).text("Number seeds")).changed();
@@ -57,8 +99,8 @@ pub fn settings_ui(
     }
     
     if keys.pressed(KeyCode::ControlLeft) && keys.just_pressed(KeyCode::Comma) {
-            egui_settings.scale_factor *= 1.1;
+        egui_settings.scale_factor *= 1.1;
     } else if keys.pressed(KeyCode::ControlLeft) && keys.just_pressed(KeyCode::Period) {
-            egui_settings.scale_factor *= 0.9;
+        egui_settings.scale_factor *= 0.9;
     }
 }

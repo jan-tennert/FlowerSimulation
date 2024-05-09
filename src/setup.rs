@@ -1,4 +1,5 @@
 use bevy::prelude::*;
+use bevy_pancam::PanCam;
 
 pub struct SetupPlugin;
 
@@ -12,7 +13,8 @@ impl Plugin for SetupPlugin {
 fn spawn_camera(
     mut commands: Commands
 ) {
-    commands.spawn({
-        Camera2dBundle::default()
-    });
+    commands.spawn({(
+        Camera2dBundle::default(),
+        PanCam::default()
+    )});
 }
