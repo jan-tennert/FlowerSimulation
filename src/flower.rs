@@ -1,4 +1,4 @@
-use std::f32::consts::PI;
+use std::{f32::consts::PI, ops::Deref};
 use bevy::{prelude::*, sprite::{Mesh2dHandle, MaterialMesh2dBundle}};
 
 use crate::{constants::PHI, ui::UiState};
@@ -8,10 +8,7 @@ pub struct FlowerPlugin;
 impl Plugin for FlowerPlugin {
     fn build(&self, app: &mut App) {
         app
-            .insert_resource(NumberSeeds(50))
-            .insert_resource(SeedRadius(4.0))
-            .insert_resource(SeedDistance(4.0))
-            .insert_resource(SeedRotation(0.))
+            .init_resource::<SeedSettings>()
             .add_systems(Startup, spawn_initial_flowers)
             .add_systems(Update, animate_flowers);
     }
@@ -21,34 +18,38 @@ impl Plugin for FlowerPlugin {
 pub struct FlowerSeed;
 
 #[derive(Resource)]
-pub struct NumberSeeds(pub i32);
-#[derive(Resource)]
-pub struct SeedRadius(pub f32);
-#[derive(Resource)]
-pub struct SeedDistance(pub f32);
-#[derive(Resource)]
-pub struct SeedRotation(pub f32);
+pub struct SeedSettings {
+    
+    pub rotation: f32,
+    pub distance: f32,
+    pub radius: f32,
+    pub amount: i32,
+    pub color: Color
+    
+}
+
+impl Default for SeedSettings {
+    
+    fn default() -> Self {
+        Self { rotation: 0., distance: 4.0, radius: 4.0, amount: 50, color: Color::ORANGE }
+    }
+    
+}
 
 fn spawn_initial_flowers(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<ColorMaterial>>,
-    num_seeds: Res<NumberSeeds>,
-    seed_radius: Res<SeedRadius>,
-    seed_distance: Res<SeedDistance>,
-    seed_rotation: Res<SeedRotation>
+    seed_settings: Res<SeedSettings>
 ) {
-    spawn_flowers(&mut commands, &mut meshes, &mut materials, num_seeds.0, seed_radius.0, seed_distance.0, seed_rotation.0);
+    spawn_flowers(&mut commands, &mut meshes, &mut materials, seed_settings.deref());
 }
 
 fn animate_flowers(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<ColorMaterial>>,
-    num_seeds: Res<NumberSeeds>,
-    seed_radius: Res<SeedRadius>,
-    seed_distance: Res<SeedDistance>,
-    mut seed_rotation: ResMut<SeedRotation>,
+    mut seed_settings: ResMut<SeedSettings>,
     ui_state: Res<UiState>,
     time: Res<Time>,  
     flowers: Query<Entity, With<FlowerSeed>>,
@@ -56,31 +57,28 @@ fn animate_flowers(
     if !ui_state.animate {
         return;
     }
-    seed_rotation.0 = seed_rotation.0 + (ui_state.step_size * time.delta_seconds());
+    seed_settings.rotation = seed_settings.rotation + (ui_state.step_size * time.delta_seconds());
     clear_flowers(&mut commands, flowers);
-    spawn_flowers(&mut commands, &mut meshes, &mut materials, num_seeds.0, seed_radius.0, seed_distance.0, seed_rotation.0);
+    spawn_flowers(&mut commands, &mut meshes, &mut materials, seed_settings.deref());
 }
 
 pub fn spawn_flowers(
     commands: &mut Commands,
     meshes: &mut ResMut<Assets<Mesh>>,
     materials: &mut ResMut<Assets<ColorMaterial>>,
-    num_seeds: i32,
-    seed_radius: f32,
-    seed_distance: f32,
-    seed_rotation: f32
+    settings: &SeedSettings
 ) {    
     let start_angle = 0.0;
 
-    for i in 1..num_seeds {
-        let angle = start_angle + ((2.0 * PI)/ (1. / seed_rotation)) * (i as f32);
+    for i in 1..settings.amount {
+        let angle = start_angle + ((2.0 * PI)/ (1. / settings.rotation)) * (i as f32);
         let radius = 5.0 * (i as f32).sqrt(); 
-        let x = angle.cos() * radius * seed_distance; 
-        let y = angle.sin() * radius * seed_distance;
+        let x = angle.cos() * radius * settings.distance; 
+        let y = angle.sin() * radius * settings.distance;
     
         commands.spawn(MaterialMesh2dBundle {
-            mesh: Mesh2dHandle(meshes.add(Circle { radius: seed_radius })), 
-            material: materials.add(Color::ORANGE),
+            mesh: Mesh2dHandle(meshes.add(Circle { radius: settings.radius })), 
+            material: materials.add(settings.color),
             transform: Transform::from_xyz(x, y, 0.0),
             ..Default::default()
         })

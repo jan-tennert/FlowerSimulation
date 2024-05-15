@@ -1,6 +1,6 @@
-use std::f32::consts::PI;
+use std::{f32::consts::PI, ops::Deref};
 use bevy::{prelude::*, sprite::{Mesh2dHandle, MaterialMesh2dBundle}};
-use crate::{constants::PHI, flower::{clear_flowers, spawn_flowers, FlowerSeed, NumberSeeds, SeedDistance, SeedRadius, SeedRotation}};
+use crate::{constants::PHI, flower::{clear_flowers, spawn_flowers, FlowerSeed, SeedSettings}};
 use bevy_egui::{egui::{self, InnerResponse, Response, ScrollArea, Ui}, EguiContexts, EguiSettings};
 
 pub struct UiPlugin;
@@ -34,13 +34,10 @@ impl Default for UiState {
 
 pub fn settings_ui(
     mut egui_context: EguiContexts,
-    mut seed_rotation: ResMut<SeedRotation>,
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<ColorMaterial>>,
-    mut num_seeds: ResMut<NumberSeeds>,
-    mut seed_radius: ResMut<SeedRadius>,
-    mut seed_distance: ResMut<SeedDistance>,   
+    mut seed_settings: ResMut<SeedSettings>,
     flowers: Query<Entity, With<FlowerSeed>>,
     mut egui_settings: ResMut<EguiSettings>,
     keys: Res<ButtonInput<KeyCode>>,
@@ -57,7 +54,7 @@ pub fn settings_ui(
                     ui.heading("Settings");
                     ui.label("Rotation per seed");
                     let rotation_slider = ui.add(
-                egui::DragValue::new(&mut seed_rotation.0)
+                egui::DragValue::new(&mut seed_settings.rotation)
                         .speed(ui_state.step_size)         
                         .fixed_decimals(14)
                     );
@@ -67,13 +64,13 @@ pub fn settings_ui(
                     if fr.lost_focus()  && fr.ctx.input(|i| i.key_pressed(egui::Key::Enter)) {
                         if let Ok(value) = meval::eval_str(&ui_state.fraction_content) {
                             r_changed = true;
-                            seed_rotation.0 = value as f32;
+                            seed_settings.rotation = value as f32;
                         }
                     }
                     ui.horizontal(|ui| {
                         if ui.button("1/φ").clicked() {
                             r_changed = true;
-                            seed_rotation.0 = 1.0 / PHI;
+                            seed_settings.rotation = 1.0 / PHI;
                         }
                     });
                     ui.label("Animation");
@@ -87,15 +84,15 @@ pub fn settings_ui(
                         ui_state.animate = !ui_state.animate;  
                     }
                     ui.label("Misc Settings");
-                    let d_changed = ui.add(egui::Slider::new(&mut seed_distance.0, 0.0..=30.0).text("Seed density")).changed();
-                    let ra_changed = ui.add(egui::Slider::new(&mut seed_radius.0, 0.0..=20.0).text("Seed radius")).changed();
-                    let n_changed = ui.add(egui::Slider::new(&mut num_seeds.0, 0..=1000).text("Number seeds")).changed();
+                    let d_changed = ui.add(egui::Slider::new(&mut seed_settings.distance, 0.0..=30.0).text("Seed density")).changed();
+                    let ra_changed = ui.add(egui::Slider::new(&mut seed_settings.radius, 0.0..=20.0).text("Seed radius")).changed();
+                    let n_changed = ui.add(egui::Slider::new(&mut seed_settings.amount, 0..=1000).text("Number seeds")).changed();
                     changed = r_changed || d_changed || ra_changed || n_changed;
             });
         });
     if changed {
         clear_flowers(&mut commands, flowers);
-        spawn_flowers(&mut commands, &mut meshes, &mut materials, num_seeds.0, seed_radius.0, seed_distance.0, seed_rotation.0);
+        spawn_flowers(&mut commands, &mut meshes, &mut materials, seed_settings.deref());
     }
     
     if keys.pressed(KeyCode::ControlLeft) && keys.just_pressed(KeyCode::Comma) {
