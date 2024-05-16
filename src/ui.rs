@@ -87,7 +87,18 @@ pub fn settings_ui(
                     let d_changed = ui.add(egui::Slider::new(&mut seed_settings.distance, 0.0..=30.0).text("Seed density")).changed();
                     let ra_changed = ui.add(egui::Slider::new(&mut seed_settings.radius, 0.0..=20.0).text("Seed radius")).changed();
                     let n_changed = ui.add(egui::Slider::new(&mut seed_settings.amount, 0..=1000).text("Number seeds")).changed();
-                    changed = r_changed || d_changed || ra_changed || n_changed;
+                    let mut c_changed = false;
+                    ui.horizontal(|ui| {
+                        ui.label("Seed Color");
+                        let mut rgb = [seed_settings.color.r(), seed_settings.color.g(), seed_settings.color.b()];
+                        c_changed = ui.color_edit_button_rgb(&mut rgb).changed();
+                        seed_settings.color = Color::rgb(rgb[0], rgb[1], rgb[2]);
+                    });
+                    if ui.button("Reset Settings").clicked() {
+                        *seed_settings = SeedSettings::default();
+                        c_changed = true;
+                    }
+                    changed = r_changed || d_changed || ra_changed || n_changed || c_changed;                    
             });
         });
     if changed {
