@@ -3,9 +3,9 @@ use bevy::{prelude::*, sprite::{Mesh2dHandle, MaterialMesh2dBundle}};
 
 use crate::{constants::PHI, ui::UiState};
 
-pub struct FlowerPlugin;
+pub struct FlowerSeedPlugin;
 
-impl Plugin for FlowerPlugin {
+impl Plugin for FlowerSeedPlugin {
     fn build(&self, app: &mut App) {
         app
             .init_resource::<SeedSettings>()
@@ -24,14 +24,22 @@ pub struct SeedSettings {
     pub distance: f32,
     pub radius: f32,
     pub amount: i32,
-    pub color: Color
+    pub color: Color,
     
 }
 
 impl Default for SeedSettings {
     
     fn default() -> Self {
-        Self { rotation: 0., distance: 4.0, radius: 4.0, amount: 50, color: Color::ORANGE }
+        Self { rotation: 0., distance: 4.0, radius: 4.0, amount: 50, color: Color::ORANGE}
+    }
+    
+}
+
+impl SeedSettings {
+        
+    pub fn default_petal() -> Self {
+        Self { rotation: 0., distance: 50.0, radius: 4.0, amount: 1, color: Color::ORANGE}        
     }
     
 }
@@ -68,10 +76,9 @@ pub fn spawn_flowers(
     materials: &mut ResMut<Assets<ColorMaterial>>,
     settings: &SeedSettings
 ) {    
-    let start_angle = 0.0;
 
-    for i in 1..settings.amount {
-        let angle = start_angle + ((2.0 * PI)/ (1. / settings.rotation)) * (i as f32);
+    for i in 1..settings.amount+1  {
+        let angle = 2.0 * PI * settings.rotation * (i as f32);
         let radius = 5.0 * (i as f32).sqrt(); 
         let x = angle.cos() * radius * settings.distance; 
         let y = angle.sin() * radius * settings.distance;
