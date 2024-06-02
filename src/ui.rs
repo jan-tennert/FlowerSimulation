@@ -63,8 +63,6 @@ impl Default for UiState {
 pub fn settings_ui(
     mut egui_context: EguiContexts,
     mut commands: Commands,
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<ColorMaterial>>,
     mut seed_settings: ResMut<SeedSettings>,
     mut egui_settings: ResMut<EguiSettings>,
     keys: Res<ButtonInput<KeyCode>>,
@@ -134,6 +132,16 @@ pub fn settings_ui(
                     if ui.add(egui::Slider::new(&mut seed_settings.amount, 0..=mode.max_amount()).text("Amount")).changed() {
                         changed = true
                     }
+                    if mode == FlowerMode::Seed {
+                        if ui.checkbox(&mut seed_settings.exp_enabled, "Exponential distance").changed() {
+                            changed = true;
+                        }
+                        if seed_settings.exp_enabled {
+                            if ui.add(egui::Slider::new(&mut seed_settings.exp_base, 1.000001..=1.001).text("Base").fixed_decimals(8).logarithmic(true)).changed() {
+                                changed = true;
+                            }
+                        }
+                    }
                     if mode == FlowerMode::Petal {
                         ui.horizontal(|ui| {
                             if ui.button("-1").clicked() {
@@ -171,6 +179,15 @@ pub fn settings_ui(
                         }
                         changed = true;
                     }                
+                    ui.separator();
+                    ui.vertical_centered(|ui| {
+                        ui.hyperlink_to(
+                    egui::RichText::from(
+                                "Source by Jan Tennert",
+                            )
+                            .size(9.), 
+                        "https://github.com/jan-tennert/FlowerSimulation");
+                    });
             });
         });
     if mode != ui_state.flower_mode {
