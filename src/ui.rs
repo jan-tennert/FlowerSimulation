@@ -1,6 +1,6 @@
 use std::{f32::consts::PI, ops::Deref};
-use bevy::{prelude::*, sprite::{Mesh2dHandle, MaterialMesh2dBundle}};
-use crate::{constants::PHI, flower::{clear_flowers, spawn_flowers, FlowerSeed, SeedSettings}, petal::{clear_petals, spawn_petals, FlowerPetal}};
+use bevy::{ecs::system::RunSystemOnce, prelude::*, sprite::{MaterialMesh2dBundle, Mesh2dHandle}};
+use crate::{constants::PHI, flower::{FlowerSeed, ResetFlowerSeeds, SeedSettings}, petal::{spawn_petals, FlowerPetal, ResetFlowerPetals}, Callback};
 use bevy_egui::{egui::{self, InnerResponse, Response, ScrollArea, Ui}, EguiContexts, EguiSettings};
 
 pub struct UiPlugin;
@@ -39,7 +39,7 @@ impl FlowerMode {
     
     fn max_amount(self) -> i32 {
         match self {
-            FlowerMode::Seed => 1000,
+            FlowerMode::Seed => 4000,
             FlowerMode::Petal => 40
         }
     }
@@ -66,11 +66,11 @@ pub fn settings_ui(
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<ColorMaterial>>,
     mut seed_settings: ResMut<SeedSettings>,
-    flowers: Query<Entity, With<FlowerSeed>>,
-    petals: Query<Entity, With<FlowerPetal>>,
     mut egui_settings: ResMut<EguiSettings>,
     keys: Res<ButtonInput<KeyCode>>,
-    mut ui_state: ResMut<UiState>
+    mut ui_state: ResMut<UiState>,
+    reset_seeds: Query<&Callback, With<ResetFlowerSeeds>>,
+    reset_petals: Query<&Callback, With<ResetFlowerPetals>>
 ) {
     let mut changed = false;
     let mode = ui_state.flower_mode.clone();    
@@ -153,7 +153,13 @@ pub fn settings_ui(
                             changed = true;
                         }
                         seed_settings.color = Color::rgb(rgb[0], rgb[1], rgb[2]);
+                        seed_settings.material_handle = None;
                     });
+                    /*if mode == FlowerMode::Seed {
+                        if ui.button("Draw connections").clicked() {
+                            commands.run_system(connection_system.single().0);
+                        }
+                    }*/
                     if ui.button("Reset Settings").clicked() {
                         match mode.clone() {
                             FlowerMode::Seed => {
@@ -168,6 +174,7 @@ pub fn settings_ui(
             });
         });
     if mode != ui_state.flower_mode {
+        ui_state.animate = false;
         match ui_state.flower_mode.clone() {
             FlowerMode::Seed => {
                 *seed_settings = SeedSettings::default();
@@ -178,14 +185,14 @@ pub fn settings_ui(
         }
     }    
     if changed || mode != ui_state.flower_mode {
-        clear_flowers(&mut commands, flowers);
-        clear_petals(&mut commands, petals);
         match ui_state.flower_mode {
             FlowerMode::Seed => {
-                spawn_flowers(&mut commands, &mut meshes, &mut materials, seed_settings.deref());
+                seed_settings.mesh_handle = None;
+                commands.run_system(reset_seeds.single().0);
             },
             FlowerMode::Petal => {
-                spawn_petals(&mut commands, &mut meshes, &mut materials, seed_settings.deref());
+                seed_settings.mesh_handle = None;
+                commands.run_system(reset_petals.single().0);
             }
         }
     }

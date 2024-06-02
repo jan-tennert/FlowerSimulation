@@ -20,6 +20,8 @@ bevy = { version = "0.13.2" }
 bevy_egui = "0.27"
 bevy_pancam = { version = "0.11.1", features = ["bevy_egui"] }
 meval = "0.2"
+bevy_vector_shapes = "0.7.0"
+bevy-inspector-egui = "0.24"
 
 [features]
 block_input = ["bevy_pancam/bevy_egui"]
