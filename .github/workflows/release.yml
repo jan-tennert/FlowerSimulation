@@ -7,7 +7,7 @@ on:
 
 env:
   # update with the name of the main binary
-  binary: Simulation
+  binary: Flower
   add_binaries_to_github_release: true
   #itch_target: <itch.io-username>/<game-name>
 
@@ -82,29 +82,11 @@ jobs:
         with:
           targets: x86_64-pc-windows-msvc
           toolchain: 1.73.0
-          
-      - name: Set up JDK 17
-        uses: actions/setup-java@v2
-        with:
-          java-version: '11'
-          distribution: 'adopt'
-
-      - name: Build
-        run: |
-          cargo build --release --target x86_64-pc-windows-msvc
-          
-      - name: Build Horizon Ui
-        run: |
-          cd .\horizon-ui
-          ./gradlew obfuscate
-          cd ..
 
       - name: Prepare package
         run: |
           mkdir windows
           cp target/x86_64-pc-windows-msvc/release/${{ env.binary }}.exe windows/
-          cp -r assets windows/
-          cp .\horizon-ui\build\compose\jars\horizon-ui-windows-x64-1.0.0.min.jar windows/horizon-ui.jar
 
       - name: Package as a zip
         run: |
