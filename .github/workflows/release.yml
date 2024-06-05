@@ -76,7 +76,10 @@ jobs:
         with:
           targets: x86_64-pc-windows-msvc
           toolchain: 1.76.0
-
+      - name: Build
+        run: |
+          cargo build --release --target x86_64-pc-windows-msvc
+          
       - name: Prepare package
         run: |
           mkdir windows
