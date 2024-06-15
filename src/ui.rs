@@ -133,13 +133,8 @@ pub fn settings_ui(
                         changed = true
                     }
                     if mode == FlowerMode::Seed {
-                        if ui.checkbox(&mut seed_settings.exp_enabled, "Exponential distance").changed() {
+                        if ui.checkbox(&mut seed_settings.exp_enabled, "Decreasing distance").changed() {
                             changed = true;
-                        }
-                        if seed_settings.exp_enabled {
-                            if ui.add(egui::Slider::new(&mut seed_settings.exp_base, 1.000001..=1.001).text("Base").fixed_decimals(8).logarithmic(true)).changed() {
-                                changed = true;
-                            }
                         }
                     }
                     if mode == FlowerMode::Petal {
@@ -155,7 +150,7 @@ pub fn settings_ui(
                         });
                     }
                     ui.horizontal(|ui| {
-                        ui.label("Seed Color");
+                        ui.label("Object Color");
                         let mut rgb = [seed_settings.color.r(), seed_settings.color.g(), seed_settings.color.b()];
                         if ui.color_edit_button_rgb(&mut rgb).changed() {
                             changed = true;

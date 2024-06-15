@@ -36,7 +36,7 @@ pub struct SeedSettings {
 impl Default for SeedSettings {
     
     fn default() -> Self {
-        Self { rotation: 0., distance: 4.0, radius: 4.0, amount: 50, color: Color::ORANGE, material_handle: None, mesh_handle: None, exp_base: 1.0001_f32, exp_enabled: false }
+        Self { rotation: 0., distance: 4.0, radius: 4.0, amount: 50, color: Color::ORANGE, material_handle: None, mesh_handle: None, exp_base: 1.0001_f32, exp_enabled: true }
     }
     
 }
@@ -44,7 +44,7 @@ impl Default for SeedSettings {
 impl SeedSettings {
         
     pub fn default_petal() -> Self {
-        Self { rotation: 0., distance: 50.0, radius: 4.0, amount: 1, color: Color::ORANGE, material_handle: None, mesh_handle: None, exp_base: 0., exp_enabled: false }        
+        Self { rotation: 0., distance: 50.0, radius: 4.0, amount: 1, color: Color::hex("#0aa50e").unwrap(), material_handle: None, mesh_handle: None, exp_base: 0., exp_enabled: false }        
     }
     
 }
@@ -101,14 +101,13 @@ fn spawn_flower_seeds(
     }
     for i in 1..settings.amount+1  {
         let angle = 2.0 * PI * settings.rotation * (i as f32);
-        let radius = 5.0 * (i as f32).sqrt(); 
-        let factor = if settings.exp_enabled {
-            settings.exp_base.powf((i - 1) as f32)
+        let radius = 5.0 * if settings.exp_enabled {
+            (i as f32).sqrt()
         } else {
-            1.
-        };
-        let x = angle.cos() * radius * settings.distance * factor; 
-        let y = angle.sin() * radius * settings.distance * factor;
+            i as f32
+        }; 
+        let x = angle.cos() * radius * settings.distance; 
+        let y = angle.sin() * radius * settings.distance;
         commands.spawn(MaterialMesh2dBundle {
             mesh: settings.mesh_handle.clone().unwrap().clone(), 
             material: settings.material_handle.clone().unwrap(),

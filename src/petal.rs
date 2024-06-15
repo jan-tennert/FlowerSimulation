@@ -50,10 +50,17 @@ pub fn spawn_petals(
         let y = angle.sin() * settings.distance;
         let rotation = Quat::from_rotation_z(angle + PI / 2.0); // Adjust by 90 degrees (PI/2) to align the petal
         commands.spawn(MaterialMesh2dBundle {
+            mesh: Mesh2dHandle(meshes.add(Ellipse::new(5.1 * settings.radius,10.1 * settings.radius))), 
+            material: materials.add(Color::GREEN),
+            transform: Transform::from_xyz(x, y, i as f32).with_rotation(rotation),
+            ..Default::default()
+        }).with_children(|c| {
+        c.spawn(MaterialMesh2dBundle {
             mesh: settings.mesh_handle.clone().unwrap(), 
             material: settings.material_handle.clone().unwrap(),
-            transform: Transform::from_xyz(x, y, 0.0).with_rotation(rotation),
+            transform: Transform::from_xyz(0., 0., 0.5),
             ..Default::default()
+        });
         })
         .insert(FlowerPetal)
         .insert(FlowerComponent);

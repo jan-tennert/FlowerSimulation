@@ -6,7 +6,8 @@ pub struct SetupPlugin;
 impl Plugin for SetupPlugin {
     fn build(&self, app: &mut App) {
         app
-            .add_systems(Startup, spawn_camera);
+            .add_systems(Startup, spawn_camera)
+            .insert_resource(ClearColor(Color::hex("#263238").unwrap()));
     }
 }
 
