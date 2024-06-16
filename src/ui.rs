@@ -39,7 +39,7 @@ impl FlowerMode {
     
     fn max_amount(self) -> i32 {
         match self {
-            FlowerMode::Seed => 4000,
+            FlowerMode::Seed => 6000,
             FlowerMode::Petal => 40
         }
     }
@@ -126,7 +126,7 @@ pub fn settings_ui(
                     if ui.add(egui::Slider::new(&mut seed_settings.distance, 0.0..=mode.max_density()).text("Density")).changed() {
                         changed = true
                     }
-                    if ui.add(egui::Slider::new(&mut seed_settings.radius, 0.0..=20.0).text("Size")).changed() {
+                    if ui.add(egui::Slider::new(&mut seed_settings.radius, 0.0..=200.0).text("Size")).changed() {
                         changed = true;
                     }
                     if ui.add(egui::Slider::new(&mut seed_settings.amount, 0..=mode.max_amount()).text("Amount")).changed() {
