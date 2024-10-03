@@ -1,6 +1,10 @@
-use bevy::{ecs::{event::EventReader, system::Query}, input::{mouse::MouseWheel, ButtonInput, InputSystem}, prelude::{KeyCode, MouseButton, Plugin, Res, ResMut, Resource}};
 use bevy::app::{PostUpdate, PreUpdate};
 use bevy::prelude::IntoSystemConfigs;
+use bevy::{
+    ecs::system::Query,
+    input::{ButtonInput, InputSystem},
+    prelude::{KeyCode, MouseButton, Plugin, Res, ResMut, Resource},
+};
 use bevy_egui::{EguiContexts, EguiSet};
 use bevy_pancam::PanCam;
 
@@ -10,23 +14,17 @@ use bevy_pancam::PanCam;
 struct EguiBlockInputState {
     wants_keyboard_input: bool,
     wants_pointer_input: bool,
-    wants_mouse_scroll: bool
+    wants_mouse_scroll: bool,
 }
 
 pub struct BlockInputPlugin;
 
 impl Plugin for BlockInputPlugin {
-    
     fn build(&self, app: &mut bevy::prelude::App) {
-        app
-        .init_resource::<EguiBlockInputState>()
-        .add_systems(PreUpdate, egui_block_input.after(InputSystem))
-        .add_systems(
-            PostUpdate,
-            egui_wants_input.after(EguiSet::ProcessOutput),
-        );
+        app.init_resource::<EguiBlockInputState>()
+            .add_systems(PreUpdate, egui_block_input.after(InputSystem))
+            .add_systems(PostUpdate, egui_wants_input.after(EguiSet::ProcessOutput));
     }
-    
 }
 
 fn egui_wants_input(mut state: ResMut<EguiBlockInputState>, mut contexts: EguiContexts) {
@@ -39,7 +37,7 @@ fn egui_block_input(
     state: Res<EguiBlockInputState>,
     mut keys: ResMut<ButtonInput<KeyCode>>,
     mut mouse_buttons: ResMut<ButtonInput<MouseButton>>,
-    mut cam: Query<&mut PanCam>
+    mut cam: Query<&mut PanCam>,
 ) {
     let mut pan = cam.single_mut();
     if state.wants_keyboard_input {
